@@ -1,0 +1,102 @@
+/*
+  Projeto: CLP blutetooth
+  
+  Sistema: PIC16F628A Clock:16Mhz
+  
+  Autot: Walef M. de Sousa
+  
+  Data: 17/05/2019
+*/
+
+// --- Hardware ---
+
+#define S1   RA0_bit
+#define S2   RA1_bit
+#define led1 RA2_bit
+#define led2 RA3_bit
+
+// -- Variaveis ---
+
+char uart_rd;
+
+// --- Funções Auxiliares ---
+
+void comandos();
+//void control();
+
+// --- interrupção ---
+
+void interrupt()
+{
+
+    //Sem interrupções nesse programa
+
+}// end interrupt
+
+// --- Função Principal ---
+
+void main()
+{
+  CMCON = 0x07;                                                 //desabilita os comparadores
+  PORTA = 0x03;                                                 //apenas RA0 e RA1 em high
+  TRISA = 0x03;                                                 //apenas RA0 e RA1 como entrada
+
+  PORTB = 0x00;                                                 //protb em high
+  TRISB = 0x02;                                                 //todo o portb como entrada
+
+ // OPTION_REG = 0x80;                                          //desailita os pull ips e prescale 1:2
+
+  //GIE_bit    = 0x01;                                          //habbilita a interrupção global
+  //PEIE_bit   = 0x01;                                          //habilita a interrupção por periféricos
+  //T0IE_bit   = 0x01;                                          //habilita a interrupção do TMR0
+
+  //TMR0       = 0x00;                                          //inicia a TMR0 em 0
+
+  UART1_Init(9600);                                             // nitialize UART module at 9600 bps
+  Delay_ms(100);                                                // Wait for UART module to stabilize
+
+  UART1_Write_Text("AT+NAMECLP_WMS");                           //nome
+  delay_ms(2000);
+  UART1_Write_Text("AT+PIN9090");                               //login e senha da rede
+  delay_ms(2000);
+  UART1_Write_Text("AT+BAUD4");                                 //baud rate 9600
+  delay_ms(2000);
+
+  while(1)
+   {
+
+        if (UART1_Data_Ready())
+      {                                                         //If data is received,
+       
+        uart_rd = UART1_Read();                                 //read the received data,
+        UART1_Write(uart_rd);                                   //and send data via UART
+     
+      }//end if
+
+        comandos();                                             //chama a função auxiliar comandos
+
+   }//end while
+
+}//end main
+
+// --- Função auxiliar ---
+
+void comandos()
+{
+
+      switch(uart_rd)
+
+         {
+
+          case 'a': led1 = 1;  break;
+
+          case 'A': led1 = 0;  break;
+
+          case 'b': led2 = 1;  break;
+
+          case 'B': led2 = 0;  break;
+
+         }//end switch
+
+
+}//end comandos
